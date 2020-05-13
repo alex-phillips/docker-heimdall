@@ -7,10 +7,13 @@ ARG HEIMDALL_RELEASE
 LABEL build_version="Linuxserver.io version:- ${VERSION} Build-date:- ${BUILD_DATE}"
 LABEL maintainer="alex-phillips"
 
+ENV HOME="/app/heimdall"
+
 RUN \
  echo "**** install build packages ****" && \
  apk add --no-cache --virtual=build-dependencies \
 	curl \
+	g++ \
 	make \
 	python3 && \
  echo "**** install runtime packages ****" && \
@@ -31,13 +34,17 @@ RUN \
 	/app/heimdall/ --strip-components=1 && \
  cd /app/heimdall && \
  npm install && \
- npm run build && \
+ cp .env.example .env && \
+ NODE_ENV=production npm run build && \
  echo "**** cleanup ****" && \
+ npm prune --production && \
  apk del --purge \
 	build-dependencies && \
  rm -rf \
 	/root/.cache \
 	/tmp/*
+
+ENV NODE_ENV="production"
 
 # copy local files
 COPY root/ /

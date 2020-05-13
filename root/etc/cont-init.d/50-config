@@ -1,11 +1,12 @@
 #!/usr/bin/with-contenv bash
 
-cd /app/heimdalljs
+cd /app/heimdall
 
 mkdir -p /config/uploads
+ln -sf /config/env /app/heimdall/.env
 
 if [ ! -f "/config/env" ]; then
-	mv /app/heimdalljs/.env.example /config/env
+	mv /app/heimdall/.env.example /config/env
 
 	SECRET_KEY=$(date +%s | sha256sum | base64 | head -c 32)
 	sed -i 's|JWT_SECRET=CHANGE_ME|JWT_SECRET='${SECRET_KEY}'|g' /config/env
@@ -17,9 +18,9 @@ if [ ! -f "/config/env" ]; then
 	npm run db:seed
 fi
 
-ln -sf /config/env /app/heimdalljs/.env
-
 # permissions
 chown -R abc:abc \
-	/config \
-	/app/heimdalljs
+	/config
+
+# chown the app directory, but not node_modules
+find /app/heimdall -maxdepth 1 ! -name node_modules ! -name heimdall -exec chown -R abc:abc '{}' \;
